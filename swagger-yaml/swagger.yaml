@@ -25,7 +25,7 @@ tags:
   description: "API used to browse a given CMIS connection"
 - name: "Administration"
 schemes:
-- "https"
+- "http"
 paths:
   /connections:
     get:
