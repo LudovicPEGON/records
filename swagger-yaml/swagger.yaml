@@ -4,7 +4,6 @@ info:
   description: "Records Management"
   version: "1.0.0"
   title: "Records Management"
-basePath: "/"
 tags:
 - name: "Document Types"
   description: "Record types are categories of records that share the same metadata\
