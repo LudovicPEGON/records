@@ -498,7 +498,7 @@ paths:
     get:
       tags:
       - "Administration"
-      summary: "List Departments test lpe"
+      summary: "List Departments test lpe aru"
       description: "List Departments"
       produces:
       - "application/json"
