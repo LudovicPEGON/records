@@ -138,6 +138,10 @@ paths:
       responses:
         200:
           description: "Successfully created"
+          headers:
+            Location:
+              type: "string"
+              description: "location of the newly created document type"
   /types/{id}:
     get:
       tags:
