@@ -138,6 +138,8 @@ paths:
       responses:
         200:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -229,6 +231,8 @@ paths:
       responses:
         200:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -768,6 +772,8 @@ paths:
       responses:
         201:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -909,6 +915,8 @@ paths:
       responses:
         201:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -1342,6 +1350,8 @@ paths:
       responses:
         201:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -1519,6 +1529,8 @@ paths:
       responses:
         201:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
@@ -1635,7 +1647,11 @@ paths:
           $ref: "#/definitions/HoldDocumentsContainer"
       responses:
         204:
-          description: "Successfully added"
+          description: "A report messages."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Property"
   /holds/{id}/documents/close:
     post:
       tags:
