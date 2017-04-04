@@ -4,6 +4,7 @@ info:
   description: "Records Management"
   version: "1.0.0"
   title: "Records Management"
+basePath: "/rest/recordsApi"
 tags:
 - name: "Document Types"
   description: "Record types are categories of records that share the same metadata\
@@ -24,8 +25,839 @@ tags:
   description: "API used to browse a given CMIS connection"
 - name: "Administration"
 schemes:
-- "http"
+- "https"
 paths:
+  /departments:
+    get:
+      tags:
+      - "Administration"
+      summary: "List Departments"
+      description: "List Departments"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Department"
+  /profile:
+    get:
+      tags:
+      - "Administration"
+      summary: "Get user profile parameters"
+      description: "Get user profile parameters"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/Profile"
+  /profile/picture:
+    get:
+      tags:
+      - "Administration"
+      summary: "Get picture of connected user"
+      description: "Get picture of connected user"
+      produces:
+      - "image/png"
+      parameters: []
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "image/png"
+  /roles:
+    get:
+      tags:
+      - "Administration"
+      summary: "List Roles"
+      description: "List Roles"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Role"
+  /types:
+    get:
+      tags:
+      - "Document Types"
+      summary: "List Document types"
+      description: "List Document types"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "parser"
+        in: "query"
+        description: "(Optional) Parser parameter on list (default = rql)"
+        required: false
+        type: "string"
+        default: "RQL"
+        enum:
+        - "RQL"
+        - "FT"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/DocumentType"
+    post:
+      tags:
+      - "Document Types"
+      summary: "Create/Duplicate a Document Type"
+      description: "Create/Duplicate a Document Type"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "recordType"
+        description: "Document type object"
+        required: true
+        schema:
+          $ref: "#/definitions/DocumentTypeInput"
+      responses:
+        200:
+          description: "Successfully created"
+  /types/{id}:
+    get:
+      tags:
+      - "Document Types"
+      summary: "Get a Document type"
+      description: "Get a Document type"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/DocumentType"
+    put:
+      tags:
+      - "Document Types"
+      summary: "Modify a given Document type"
+      description: "Modify a given Document type"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "objectType"
+        description: "Document type object"
+        required: true
+        schema:
+          $ref: "#/definitions/DocumentTypeInput"
+      responses:
+        204:
+          description: "Successfully modified"
+    delete:
+      tags:
+      - "Document Types"
+      summary: "Delete a Document Type"
+      description: "Delete a Document Type"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        204:
+          description: "Successfully deleted"
+  /types/{id}/queries:
+    post:
+      tags:
+      - "Document Types"
+      summary: "Create automatically a Query from a Document Type"
+      description: "Create automatically a Query from a Document Type"
+      consumes:
+      - "application/x-www-form-urlencoded"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "connectionId"
+        in: "formData"
+        description: "Connection Id"
+        required: true
+        type: "string"
+      - name: "sourceFolderId"
+        in: "formData"
+        description: "Source Folder Id"
+        required: true
+        type: "string"
+      - name: "sourceTypeId"
+        in: "formData"
+        description: "Source Type Id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfully created"
+          headers:
+            Location:
+              type: "string"
+              description: "location of the newly created query"
+  /types/icons:
+    get:
+      tags:
+      - "Document Types"
+      summary: "List icons for Document Types"
+      description: "List icons for Document Types"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful Response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ObjectLink"
+  /types/icons/{id}:
+    get:
+      tags:
+      - "Document Types"
+      summary: "Get the icon file"
+      description: "Get the icon file"
+      produces:
+      - "image/png"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "image/png"
+  /documents:
+    get:
+      tags:
+      - "Documents"
+      summary: "List Document objects"
+      description: "List Document objects"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "documentType"
+        in: "query"
+        description: "Document type code"
+        required: true
+        type: "string"
+      - name: "count"
+        in: "query"
+        description: "(Optional) Count parameter on list"
+        required: false
+        type: "integer"
+      - name: "offset"
+        in: "query"
+        description: "(Optional) Offset parameter on list"
+        required: false
+        type: "integer"
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "filterQuery"
+        in: "query"
+        description: "(Optional) Filter Query parameter on list"
+        required: false
+        type: "array"
+        items:
+          type: "string"
+        collectionFormat: "multi"
+      - name: "parser"
+        in: "query"
+        description: "(Optional) Parser parameter on list (default = rql)"
+        required: false
+        type: "string"
+        default: "RQL"
+        enum:
+        - "RQL"
+        - "FT"
+      - name: "sort"
+        in: "query"
+        description: "(Optional) Sort parameter on list"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/SearchResults"
+    post:
+      tags:
+      - "Documents"
+      summary: "Create a Document"
+      description: "Create a Document"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "object"
+        required: false
+        schema:
+          $ref: "#/definitions/DocumentInput"
+      responses:
+        201:
+          description: "Successfully created"
+          headers:
+            id:
+              type: "string"
+              description: "document's id created"
+  /documents/export:
+    post:
+      tags:
+      - "Documents"
+      summary: "Export the given Document Objects"
+      description: "Export the given Document Objects"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/octet-stream"
+      parameters:
+      - in: "body"
+        name: "ids"
+        required: true
+        schema:
+          $ref: "#/definitions/AlphaKeys"
+      - name: "format"
+        in: "header"
+        description: "Tell which format  you want (PDF, CSV or XLS)"
+        required: false
+        type: "string"
+        default: "PDF"
+        enum:
+        - "PDF"
+        - "XLS"
+        - "CSV"
+      - name: "attachement"
+        in: "header"
+        description: "Tell if we want to download or not"
+        required: false
+        type: "boolean"
+        default: false
+      - name: "template"
+        in: "header"
+        description: "the template name to download"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Successfully treated"
+          schema:
+            type: "file"
+          headers:
+            content-disposition:
+              type: "string"
+              description: "content is expected to be displayed inline in the browser"
+  /documents/{id}:
+    get:
+      tags:
+      - "Documents"
+      summary: "Get the given Document"
+      description: "Get the given Document"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/Document"
+    put:
+      tags:
+      - "Documents"
+      summary: "Modify a Document"
+      description: "Modify a Document"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "object"
+        required: true
+        schema:
+          $ref: "#/definitions/DocumentInput"
+      responses:
+        204:
+          description: "Successfully modified"
+    delete:
+      tags:
+      - "Documents"
+      summary: "Delete a Document"
+      description: "Delete a Document"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        204:
+          description: "Successfully deleted"
+  /documents/{id}/thumbnail:
+    get:
+      tags:
+      - "Documents"
+      summary: "Get a thumbnail"
+      description: "Get a thumbnail of the first page of his first document attached\
+        \ if there is one."
+      produces:
+      - "image/png"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "image/png"
+  /documents/{id}/files:
+    post:
+      tags:
+      - "Documents"
+      summary: "Set/Replace a file to the given Document"
+      description: "Set/Replace a file to the given Document"
+      consumes:
+      - "multipart/form-data"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "file"
+        in: "formData"
+        description: "the attachment content"
+        required: true
+        type: "file"
+      responses:
+        204:
+          description: "Successfully added"
+  /documents/{id}/files/{fileId}:
+    get:
+      tags:
+      - "Documents"
+      summary: "Get a specific File"
+      description: "Get a specific File"
+      produces:
+      - "application/octet-stream"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "fileId"
+        in: "path"
+        description: "File's id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfully retrieved"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "media type of the resource"
+            content-disposition:
+              type: "string"
+              description: "content is expected to be displayed inline in the browser"
+  /documents/{id}/files/{fileId}/thumbnail:
+    get:
+      tags:
+      - "Documents"
+      summary: "Get the thumbnail of the File"
+      description: "Get the thumbnail of the File"
+      produces:
+      - "image/png"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "fileId"
+        in: "path"
+        description: "File's id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfully retrieved"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "image/png"
+  /documents/{id}/history:
+    get:
+      tags:
+      - "Documents"
+      summary: "Get an history of a Document"
+      description: "Get history of a Document (Date and user for creation and modifications)."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/History"
+  /documents/destroy:
+    post:
+      tags:
+      - "Documents"
+      summary: "Approve destruction for selected Documents"
+      description: "Approve destruction for selected Documents"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "ids"
+        required: false
+        schema:
+          $ref: "#/definitions/AlphaKeys"
+      responses:
+        204:
+          description: "Successfully destructed"
+  /retentions:
+    get:
+      tags:
+      - "Retention Rules"
+      summary: "List Retention rules"
+      description: "List Retention rules"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "parser"
+        in: "query"
+        description: "(Optional) Parser parameter on list (default = rql)"
+        required: false
+        type: "string"
+        default: "RQL"
+        enum:
+        - "RQL"
+        - "FT"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Retention"
+    post:
+      tags:
+      - "Retention Rules"
+      summary: "Create/Duplicate a new Retention Rule"
+      description: "Create/Duplicate a new Retention Rule"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "retentionRule"
+        description: "Retention rule object"
+        required: true
+        schema:
+          $ref: "#/definitions/RetentionInput"
+      responses:
+        201:
+          description: "Successfully created"
+          headers:
+            Location:
+              type: "string"
+              description: "location of the newly created retention rule"
+  /retentions/{id}:
+    get:
+      tags:
+      - "Retention Rules"
+      summary: "List Retention rules"
+      description: "List Retention rules"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/Retention"
+    put:
+      tags:
+      - "Retention Rules"
+      summary: "Modify a Retention Rule"
+      description: "Modify a  Retention Rule"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "retentionRule"
+        description: "Retention rule object"
+        required: true
+        schema:
+          $ref: "#/definitions/RetentionInput"
+      responses:
+        204:
+          description: "Successfully modified"
+    delete:
+      tags:
+      - "Retention Rules"
+      summary: "Delete a Retention Rule"
+      description: "Delete a Retention Rule"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        204:
+          description: "Successfully deleted"
+  /retentions/{id}/export:
+    post:
+      tags:
+      - "Retention Rules"
+      summary: "Export a report of this Retention Rule"
+      description: "Export a report of this Retention Rule"
+      produces:
+      - "application/pdf"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfully treated"
+          schema:
+            type: "file"
+          headers:
+            content-type:
+              type: "string"
+              description: "application/pdf"
+            content-disposition:
+              type: "string"
+              description: "content is expected to be displayed inline in the browser"
+  /jobs:
+    get:
+      tags:
+      - "Jobs"
+      summary: "List all Jobs"
+      description: "List all Jobs"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "parser"
+        in: "query"
+        description: "(Optional) Parser parameter on list (default = rql)"
+        required: false
+        type: "string"
+        default: "RQL"
+        enum:
+        - "RQL"
+        - "FT"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Job"
+    post:
+      tags:
+      - "Jobs"
+      summary: "Create a new Job"
+      description: "Create a new Job"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "job"
+        description: "Job object"
+        required: true
+        schema:
+          $ref: "#/definitions/JobInput"
+      responses:
+        201:
+          description: "Successfully created"
+          headers:
+            Location:
+              type: "string"
+              description: "location of the newly created job"
+  /jobs/{id}:
+    get:
+      tags:
+      - "Jobs"
+      summary: "Get a job"
+      description: "Get a job"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/Job"
+    put:
+      tags:
+      - "Jobs"
+      summary: "Modify a given Job"
+      description: "Modify a given Job"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "job"
+        description: "Job object"
+        required: true
+        schema:
+          $ref: "#/definitions/JobInput"
+      responses:
+        204:
+          description: "Successfully modified"
+    delete:
+      tags:
+      - "Jobs"
+      summary: "Delete a given Job"
+      description: "Delete a given Job"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        204:
+          description: "Successfully deleted"
+  /jobs/{id}/status:
+    get:
+      tags:
+      - "Jobs"
+      summary: "Get a job status"
+      description: "Get a job status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/JobStatus"
+  /jobs/queries/unused:
+    get:
+      tags:
+      - "Jobs"
+      summary: "Get all queries that has not been associated with existing job"
+      description: "Get a job status"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Query"
   /connections:
     get:
       tags:
@@ -77,30 +909,6 @@ paths:
             Location:
               type: "string"
               description: "location of the newly created connection"
-  /connections/repositories:
-    post:
-      tags:
-      - "CMIS Client"
-      summary: "List repositories for the given connection when creating connection"
-      description: "List repositories for the given connection when creating connection"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "connection"
-        description: "Connection object"
-        required: true
-        schema:
-          $ref: "#/definitions/Connection"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/ETObject"
   /connections/test:
     post:
       tags:
@@ -178,13 +986,12 @@ paths:
       responses:
         204:
           description: "Successfully deleted"
-  /connections/{id}/children:
+  /connections/{id}/status:
     get:
       tags:
-      - "CMIS Client"
-      summary: "Get children of the root from the given repository"
-      description: "Get children of the root from the given repository repository\
-        \ (folders, documents, items, relationships, ...)"
+      - "Connections"
+      summary: "Get a connection status"
+      description: "Get a connection status"
       produces:
       - "application/json"
       parameters:
@@ -193,27 +1000,11 @@ paths:
         description: "Object alphanumeric id"
         required: true
         type: "string"
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "parser"
-        in: "query"
-        description: "(Optional) Parser parameter on list (default = rql)"
-        required: false
-        type: "string"
-        default: "RQL"
-        enum:
-        - "RQL"
-        - "FT"
       responses:
         200:
           description: "Successful response"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/ETObject"
+            $ref: "#/definitions/ConnectionStatus"
   /connections/{id}/connect:
     post:
       tags:
@@ -254,6 +1045,30 @@ paths:
       responses:
         204:
           description: "Successfully disconnected"
+  /connections/repositories:
+    post:
+      tags:
+      - "CMIS Client"
+      summary: "List repositories for the given connection when creating connection"
+      description: "List repositories for the given connection when creating connection"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "connection"
+        description: "Connection object"
+        required: true
+        schema:
+          $ref: "#/definitions/Connection"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ETObject"
   /connections/{id}/repositories:
     get:
       tags:
@@ -275,12 +1090,13 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/ETObject"
-  /connections/{id}/status:
+  /connections/{id}/children:
     get:
       tags:
-      - "Connections"
-      summary: "Get a connection status"
-      description: "Get a connection status"
+      - "CMIS Client"
+      summary: "Get children of the root from the given repository"
+      description: "Get children of the root from the given repository repository\
+        \ (folders, documents, items, relationships, ...)"
       produces:
       - "application/json"
       parameters:
@@ -289,11 +1105,27 @@ paths:
         description: "Object alphanumeric id"
         required: true
         type: "string"
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "parser"
+        in: "query"
+        description: "(Optional) Parser parameter on list (default = rql)"
+        required: false
+        type: "string"
+        default: "RQL"
+        enum:
+        - "RQL"
+        - "FT"
       responses:
         200:
           description: "Successful response"
           schema:
-            $ref: "#/definitions/ConnectionStatus"
+            type: "array"
+            items:
+              $ref: "#/definitions/ETObject"
   /connections/{id}/types:
     get:
       tags:
@@ -315,30 +1147,6 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/ObjectType"
-  /connections/{id}/{objectId}:
-    get:
-      tags:
-      - "CMIS Client"
-      summary: "Get a given object"
-      description: "Get a given object"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "objectId"
-        in: "path"
-        description: "Object id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/ETObject"
   /connections/{id}/{objectId}/children:
     get:
       tags:
@@ -405,6 +1213,56 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/ObjectType"
+  /connections/{id}/{objectId}:
+    get:
+      tags:
+      - "CMIS Client"
+      summary: "Get a given object"
+      description: "Get a given object"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "objectId"
+        in: "path"
+        description: "Object id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/ETObject"
+  /connections/{id}/{objectId}/types:
+    get:
+      tags:
+      - "CMIS Client"
+      summary: "List types of the given object"
+      description: "List types of the given object"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Object alphanumeric id"
+        required: true
+        type: "string"
+      - name: "objectId"
+        in: "path"
+        description: "Object id"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ObjectType"
   /connections/{id}/{objectId}/content:
     get:
       tags:
@@ -433,120 +1291,20 @@ paths:
             content-type:
               type: "string"
               description: "application/octet-stream"
-  /connections/{id}/{objectId}/types:
+  /queries:
     get:
       tags:
-      - "CMIS Client"
-      summary: "List types of the given object"
-      description: "List types of the given object"
+      - "Queries"
+      summary: "List all Queries"
+      description: "List all Queries"
       produces:
       - "application/json"
       parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "objectId"
-        in: "path"
-        description: "Object id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/ObjectType"
-  /dashboard/jobs:
-    get:
-      tags:
-      - "Dashboard"
-      summary: "Get jobs for dashboard"
-      description: "Get jobs for dashboard"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "status"
-        in: "query"
-        description: "Status"
-        required: false
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/DashboardJobInfo"
-  /dashboard/stats:
-    get:
-      tags:
-      - "Dashboard"
-      summary: "Get stats for dashboard"
-      description: "Get stats for dashboard"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/SearchResultsFacets"
-  /departments:
-    get:
-      tags:
-      - "Administration"
-      summary: "List Departments test lpe aru"
-      description: "List Departments"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Department"
-  /documents:
-    get:
-      tags:
-      - "Documents"
-      summary: "List Document objects"
-      description: "List Document objects"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "documentType"
-        in: "query"
-        description: "Document type code"
-        required: true
-        type: "string"
-      - name: "count"
-        in: "query"
-        description: "(Optional) Count parameter on list"
-        required: false
-        type: "integer"
-      - name: "offset"
-        in: "query"
-        description: "(Optional) Offset parameter on list"
-        required: false
-        type: "integer"
       - name: "query"
         in: "query"
         description: "Query parameter on list"
         required: false
         type: "string"
-      - name: "filterQuery"
-        in: "query"
-        description: "(Optional) Filter Query parameter on list"
-        required: false
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
       - name: "parser"
         in: "query"
         description: "(Optional) Parser parameter on list (default = rql)"
@@ -556,97 +1314,74 @@ paths:
         enum:
         - "RQL"
         - "FT"
-      - name: "sort"
-        in: "query"
-        description: "(Optional) Sort parameter on list"
-        required: false
-        type: "string"
       responses:
         200:
           description: "Successful response"
           schema:
-            $ref: "#/definitions/SearchResults"
+            type: "array"
+            items:
+              $ref: "#/definitions/Query"
     post:
       tags:
-      - "Documents"
-      summary: "Create a Document"
-      description: "Create a Document"
+      - "Queries"
+      summary: "Create a new Query"
+      description: "Create a new Query"
       consumes:
       - "application/json"
       parameters:
       - in: "body"
-        name: "object"
-        required: false
+        name: "query"
+        description: "Query object"
+        required: true
         schema:
-          $ref: "#/definitions/DocumentInput"
+          $ref: "#/definitions/QueryInput"
       responses:
         201:
           description: "Successfully created"
-  /documents/destroy:
-    post:
-      tags:
-      - "Documents"
-      summary: "Approve destruction for selected Documents"
-      description: "Approve destruction for selected Documents"
-      consumes:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "ids"
-        required: false
-        schema:
-          $ref: "#/definitions/AlphaKeys"
-      responses:
-        204:
-          description: "Successfully destructed"
-  /documents/export:
-    post:
-      tags:
-      - "Documents"
-      summary: "Export the given Document Objects"
-      description: "Export the given Document Objects"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/octet-stream"
-      parameters:
-      - in: "body"
-        name: "ids"
-        required: true
-        schema:
-          $ref: "#/definitions/AlphaKeys"
-      - name: "format"
-        in: "header"
-        description: "Tell which format  you want (PDF, CSV or XLS)"
-        required: false
-        type: "string"
-        default: "PDF"
-        enum:
-        - "PDF"
-        - "XLS"
-        - "CSV"
-      - name: "attachement"
-        in: "header"
-        description: "Tell if we want to download or not"
-        required: false
-        type: "boolean"
-        default: false
-      - name: "template"
-        in: "header"
-        description: "the template name to download"
-        required: false
-        type: "string"
-      responses:
-        200:
-          description: "Successfully treated"
-          schema:
-            type: "file"
-  /documents/{id}:
+          headers:
+            Location:
+              type: "string"
+              description: "location of the newly created query"
+  /queries/test:
     get:
       tags:
-      - "Documents"
-      summary: "Get the given Document"
-      description: "Get the given Document"
+      - "Queries"
+      summary: "test a query on a CMIS server"
+      description: "test a query on a CMIS server"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "query"
+        in: "query"
+        description: "Query parameter on list"
+        required: false
+        type: "string"
+      - name: "connectionId"
+        in: "query"
+        description: "Connection id parameter"
+        required: false
+        type: "string"
+      - name: "offset"
+        in: "query"
+        description: "(Optional) Offset parameter on list"
+        required: false
+        type: "integer"
+      - name: "count"
+        in: "query"
+        description: "(Optional) Count parameter on list"
+        required: false
+        type: "integer"
+      responses:
+        200:
+          description: "Successful response"
+          schema:
+            type: "boolean"
+  /queries/{id}:
+    get:
+      tags:
+      - "Queries"
+      summary: "Get a Query"
+      description: "Get a Query"
       produces:
       - "application/json"
       parameters:
@@ -659,12 +1394,12 @@ paths:
         200:
           description: "Successful response"
           schema:
-            $ref: "#/definitions/Document"
+            $ref: "#/definitions/Query"
     put:
       tags:
-      - "Documents"
-      summary: "Modify a Document"
-      description: "Modify a Document"
+      - "Queries"
+      summary: "Modify a given Query"
+      description: "Modify a given Query"
       consumes:
       - "application/json"
       parameters:
@@ -674,18 +1409,19 @@ paths:
         required: true
         type: "string"
       - in: "body"
-        name: "object"
+        name: "query"
+        description: "Query object"
         required: true
         schema:
-          $ref: "#/definitions/DocumentInput"
+          $ref: "#/definitions/QueryInput"
       responses:
         204:
           description: "Successfully modified"
     delete:
       tags:
-      - "Documents"
-      summary: "Delete a Document"
-      description: "Delete a Document"
+      - "Queries"
+      summary: "Delete a given Query"
+      description: "Delete a given Query"
       parameters:
       - name: "id"
         in: "path"
@@ -695,91 +1431,13 @@ paths:
       responses:
         204:
           description: "Successfully deleted"
-  /documents/{id}/files:
+  /queries/{id}/types:
     post:
       tags:
-      - "Documents"
-      summary: "Set/Replace a file to the given Document"
-      description: "Set/Replace a file to the given Document"
+      - "Queries"
+      summary: "Create automatically a Document Type from a Query"
+      description: "Create automatically a Document Type from a Query"
       consumes:
-      - "multipart/form-data"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "the attachment content"
-        required: true
-        type: "file"
-      responses:
-        204:
-          description: "Successfully added"
-  /documents/{id}/files/{fileId}:
-    get:
-      tags:
-      - "Documents"
-      summary: "Get a specific File"
-      description: "Get a specific File"
-      produces:
-      - "application/octet-stream"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "fileId"
-        in: "path"
-        description: "File's id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successfully retrieved"
-          schema:
-            type: "file"
-          headers:
-            content-type:
-              type: "string"
-              description: "application/octet-stream"
-  /documents/{id}/files/{fileId}/thumbnail:
-    get:
-      tags:
-      - "Documents"
-      summary: "Get the thumbnail of the File"
-      description: "Get the thumbnail of the File"
-      produces:
-      - "image/png"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "fileId"
-        in: "path"
-        description: "File's id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successfully retrieved"
-          schema:
-            type: "file"
-          headers:
-            content-type:
-              type: "string"
-              description: "image/png"
-  /documents/{id}/history:
-    get:
-      tags:
-      - "Documents"
-      summary: "Get an history of a Document"
-      description: "Get history of a Document (Date and user for creation and modifications)."
-      produces:
       - "application/json"
       parameters:
       - name: "id"
@@ -787,35 +1445,19 @@ paths:
         description: "Object alphanumeric id"
         required: true
         type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/History"
-  /documents/{id}/thumbnail:
-    get:
-      tags:
-      - "Documents"
-      summary: "Get a thumbnail"
-      description: "Get a thumbnail of the first page of his first document attached\
-        \ if there is one."
-      produces:
-      - "image/png"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
+      - in: "body"
+        name: "type"
+        description: "Type object"
         required: true
-        type: "string"
+        schema:
+          $ref: "#/definitions/DocumentTypeBaseInput"
       responses:
         200:
-          description: "Successful response"
-          schema:
-            type: "file"
+          description: "Successfully created"
           headers:
-            content-type:
+            Location:
               type: "string"
-              description: "image/png"
+              description: "location of the newly document type"
   /holds:
     get:
       tags:
@@ -1012,487 +1654,6 @@ paths:
       responses:
         204:
           description: "Successfully closed"
-  /jobs:
-    get:
-      tags:
-      - "Jobs"
-      summary: "List all Jobs"
-      description: "List all Jobs"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "parser"
-        in: "query"
-        description: "(Optional) Parser parameter on list (default = rql)"
-        required: false
-        type: "string"
-        default: "RQL"
-        enum:
-        - "RQL"
-        - "FT"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Job"
-    post:
-      tags:
-      - "Jobs"
-      summary: "Create a new Job"
-      description: "Create a new Job"
-      consumes:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "job"
-        description: "Job object"
-        required: true
-        schema:
-          $ref: "#/definitions/JobInput"
-      responses:
-        201:
-          description: "Successfully created"
-          headers:
-            Location:
-              type: "string"
-              description: "location of the newly created job"
-  /jobs/queries/unused:
-    get:
-      tags:
-      - "Jobs"
-      summary: "Get all queries that has not been associated with existing job"
-      description: "Get a job status"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Query"
-  /jobs/{id}:
-    get:
-      tags:
-      - "Jobs"
-      summary: "Get a job"
-      description: "Get a job"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/Job"
-    put:
-      tags:
-      - "Jobs"
-      summary: "Modify a given Job"
-      description: "Modify a given Job"
-      consumes:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "job"
-        description: "Job object"
-        required: true
-        schema:
-          $ref: "#/definitions/JobInput"
-      responses:
-        204:
-          description: "Successfully modified"
-    delete:
-      tags:
-      - "Jobs"
-      summary: "Delete a given Job"
-      description: "Delete a given Job"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        204:
-          description: "Successfully deleted"
-  /jobs/{id}/status:
-    get:
-      tags:
-      - "Jobs"
-      summary: "Get a job status"
-      description: "Get a job status"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/JobStatus"
-  /profile:
-    get:
-      tags:
-      - "Administration"
-      summary: "Get user profile parameters"
-      description: "Get user profile parameters"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/Profile"
-  /profile/picture:
-    get:
-      tags:
-      - "Administration"
-      summary: "Get picture of connected user"
-      description: "Get picture of connected user"
-      produces:
-      - "image/png"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "file"
-          headers:
-            content-type:
-              type: "string"
-              description: "image/png"
-  /queries:
-    get:
-      tags:
-      - "Queries"
-      summary: "List all Queries"
-      description: "List all Queries"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "parser"
-        in: "query"
-        description: "(Optional) Parser parameter on list (default = rql)"
-        required: false
-        type: "string"
-        default: "RQL"
-        enum:
-        - "RQL"
-        - "FT"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Query"
-    post:
-      tags:
-      - "Queries"
-      summary: "Create a new Query"
-      description: "Create a new Query"
-      consumes:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "query"
-        description: "Query object"
-        required: true
-        schema:
-          $ref: "#/definitions/QueryInput"
-      responses:
-        201:
-          description: "Successfully created"
-          headers:
-            Location:
-              type: "string"
-              description: "location of the newly created query"
-  /queries/test:
-    get:
-      tags:
-      - "Queries"
-      summary: "test a query on a CMIS server"
-      description: "test a query on a CMIS server"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "connectionId"
-        in: "query"
-        description: "Connection id parameter"
-        required: false
-        type: "string"
-      - name: "offset"
-        in: "query"
-        description: "(Optional) Offset parameter on list"
-        required: false
-        type: "integer"
-      - name: "count"
-        in: "query"
-        description: "(Optional) Count parameter on list"
-        required: false
-        type: "integer"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "boolean"
-  /queries/{id}:
-    get:
-      tags:
-      - "Queries"
-      summary: "Get a Query"
-      description: "Get a Query"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/Query"
-    put:
-      tags:
-      - "Queries"
-      summary: "Modify a given Query"
-      description: "Modify a given Query"
-      consumes:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "query"
-        description: "Query object"
-        required: true
-        schema:
-          $ref: "#/definitions/QueryInput"
-      responses:
-        204:
-          description: "Successfully modified"
-    delete:
-      tags:
-      - "Queries"
-      summary: "Delete a given Query"
-      description: "Delete a given Query"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        204:
-          description: "Successfully deleted"
-  /queries/{id}/types:
-    post:
-      tags:
-      - "Queries"
-      summary: "Create automatically a Document Type from a Query"
-      description: "Create automatically a Document Type from a Query"
-      consumes:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "type"
-        description: "Type object"
-        required: true
-        schema:
-          $ref: "#/definitions/DocumentTypeBaseInput"
-      responses:
-        200:
-          description: "Successfully created"
-  /retentions:
-    get:
-      tags:
-      - "Retention Rules"
-      summary: "List Retention rules"
-      description: "List Retention rules"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "parser"
-        in: "query"
-        description: "(Optional) Parser parameter on list (default = rql)"
-        required: false
-        type: "string"
-        default: "RQL"
-        enum:
-        - "RQL"
-        - "FT"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Retention"
-    post:
-      tags:
-      - "Retention Rules"
-      summary: "Create/Duplicate a new Retention Rule"
-      description: "Create/Duplicate a new Retention Rule"
-      consumes:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "retentionRule"
-        description: "Retention rule object"
-        required: true
-        schema:
-          $ref: "#/definitions/RetentionInput"
-      responses:
-        201:
-          description: "Successfully created"
-          headers:
-            Location:
-              type: "string"
-              description: "location of the newly created retention rule"
-  /retentions/{id}:
-    get:
-      tags:
-      - "Retention Rules"
-      summary: "List Retention rules"
-      description: "List Retention rules"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/Retention"
-    put:
-      tags:
-      - "Retention Rules"
-      summary: "Modify a Retention Rule"
-      description: "Modify a  Retention Rule"
-      consumes:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "retentionRule"
-        description: "Retention rule object"
-        required: true
-        schema:
-          $ref: "#/definitions/RetentionInput"
-      responses:
-        204:
-          description: "Successfully modified"
-    delete:
-      tags:
-      - "Retention Rules"
-      summary: "Delete a Retention Rule"
-      description: "Delete a Retention Rule"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        204:
-          description: "Successfully deleted"
-  /retentions/{id}/export:
-    post:
-      tags:
-      - "Retention Rules"
-      summary: "Export a report of this Retention Rule"
-      description: "Export a report of this Retention Rule"
-      produces:
-      - "application/pdf"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successfully treated"
-          schema:
-            type: "file"
-          headers:
-            content-type:
-              type: "string"
-              description: "application/pdf"
-  /roles:
-    get:
-      tags:
-      - "Administration"
-      summary: "List Roles"
-      description: "List Roles"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Role"
   /search:
     get:
       tags:
@@ -1616,179 +1777,48 @@ paths:
           description: "Successfully treated"
           schema:
             type: "file"
-  /types:
+          headers:
+            content-type:
+              type: "string"
+              description: "media type of the resource"
+            content-disposition:
+              type: "string"
+              description: "content is expected to be displayed inline in the browser"
+  /dashboard/stats:
     get:
       tags:
-      - "Document Types"
-      summary: "List Document types"
-      description: "List Document types"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "query"
-        in: "query"
-        description: "Query parameter on list"
-        required: false
-        type: "string"
-      - name: "parser"
-        in: "query"
-        description: "(Optional) Parser parameter on list (default = rql)"
-        required: false
-        type: "string"
-        default: "RQL"
-        enum:
-        - "RQL"
-        - "FT"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/DocumentType"
-    post:
-      tags:
-      - "Document Types"
-      summary: "Create/Duplicate a Document Type"
-      description: "Create/Duplicate a Document Type"
-      consumes:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "recordType"
-        description: "Document type object"
-        required: true
-        schema:
-          $ref: "#/definitions/DocumentTypeInput"
-      responses:
-        200:
-          description: "Successfully created"
-  /types/icons:
-    get:
-      tags:
-      - "Document Types"
-      summary: "List icons for Document Types"
-      description: "List icons for Document Types"
+      - "Dashboard"
+      summary: "Get stats for dashboard"
+      description: "Get stats for dashboard"
       produces:
       - "application/json"
       parameters: []
       responses:
         200:
-          description: "Successful Response"
+          description: "Successful response"
+          schema:
+            $ref: "#/definitions/SearchResultsFacets"
+  /dashboard/jobs:
+    get:
+      tags:
+      - "Dashboard"
+      summary: "Get jobs for dashboard"
+      description: "Get jobs for dashboard"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "status"
+        in: "query"
+        description: "Status"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Successful response"
           schema:
             type: "array"
             items:
-              $ref: "#/definitions/ObjectLink"
-  /types/icons/{id}:
-    get:
-      tags:
-      - "Document Types"
-      summary: "Get the icon file"
-      description: "Get the icon file"
-      produces:
-      - "image/png"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            type: "file"
-          headers:
-            content-type:
-              type: "string"
-              description: "image/png"
-  /types/{id}:
-    get:
-      tags:
-      - "Document Types"
-      summary: "Get a Document type"
-      description: "Get a Document type"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successful response"
-          schema:
-            $ref: "#/definitions/DocumentType"
-    put:
-      tags:
-      - "Document Types"
-      summary: "Modify a given Document type"
-      description: "Modify a given Document type"
-      consumes:
-      - "application/json"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "objectType"
-        description: "Document type object"
-        required: true
-        schema:
-          $ref: "#/definitions/DocumentTypeInput"
-      responses:
-        204:
-          description: "Successfully modified"
-    delete:
-      tags:
-      - "Document Types"
-      summary: "Delete a Document Type"
-      description: "Delete a Document Type"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      responses:
-        204:
-          description: "Successfully deleted"
-  /types/{id}/queries:
-    post:
-      tags:
-      - "Document Types"
-      summary: "Create automatically a Query from a Document Type"
-      description: "Create automatically a Query from a Document Type"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "Object alphanumeric id"
-        required: true
-        type: "string"
-      - name: "connectionId"
-        in: "formData"
-        description: "Connection Id"
-        required: true
-        type: "string"
-      - name: "sourceFolderId"
-        in: "formData"
-        description: "Source Folder Id"
-        required: true
-        type: "string"
-      - name: "sourceTypeId"
-        in: "formData"
-        description: "Source Type Id"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Successfully created"
+              $ref: "#/definitions/DashboardJobInfo"
 definitions:
   DashboardJobInfo:
     type: "object"
@@ -2465,10 +2495,10 @@ definitions:
     description: "Role Object"
   Profile_departmentsRole:
     properties:
-      role:
-        $ref: "#/definitions/Role"
       department:
         $ref: "#/definitions/Department"
+      role:
+        $ref: "#/definitions/Role"
 parameters:
   formatQueryParam:
     name: "format"
