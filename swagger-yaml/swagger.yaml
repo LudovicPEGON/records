@@ -1468,6 +1468,8 @@ paths:
       responses:
         200:
           description: "Successfully created"
+          schema:
+            type: "string"
           headers:
             Location:
               type: "string"
