@@ -2362,7 +2362,7 @@ definitions:
         id:
           type: "string"
         type:
-          $ref: "#/definitions/ObjectLink"
+          $ref: "#/definitions/FileLink"
   DocumentInput:
     title: "A Document object"
     allOf:
